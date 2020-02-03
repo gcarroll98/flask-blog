@@ -1,35 +1,61 @@
-
+#import certain functions into the global
+#namespace
 from app import app
 from markdown import markdown
-from flask import render_template_string, request, session
-from app.helpers import render_markdown
-from os import listdir
-from os.path import isfile,join
+from flask import render_template, render_template_string, request, session
+from app.blog_helpers import render_markdown
 
 import flask
 
-#home page 
-@app.route("/")
-def home():
-    return render_markdown('index.md')
 
-#login with POST
-@app.route('/login',methods = ['GET','POST'])
+#home page
+@app.route('/')
+def home():
+    return render_markdown("index.md")
+
+@app.route('/all')
+def all():
+    #TODO: figure out how to find all files 
+    #in the app
+    view_data = {}
+    view_data["pages"] = ([ #parens allows for multi
+                            #line statements in Py
+        'about.html',
+        'test.html',
+        'foo.html'
+    ])
+    return render_template("all.html", data = view_data)
+
+@app.route('/login', methods=['GET', 'POST'])
 def login():
+
     if request.method == 'POST':
+        
+        #TODO: process request.values as necessary
         session['user_name'] = request.values['user_name']
     return ""
+
+@app.route("/favicon.ico")
+def favicon():
+    return ""
+
+
+
+@app.route("/click_tracker", methods=['GET', 'POST'])
+def click_tracker():
+    view_data = {}
+    view_data["click_count"] = 0
+    if request.method == 'POST':
+        view_data["click_count"] = request.values["click_count"]
+        view_data["click_count"] = int(view_data["click_count"]) + 1
+    return render_template('click_tracker.html', data=view_data)
+    
 
 #generic page
 @app.route("/<view_name>")
 
-#new template
-def render_page (view_name):
-    html = render_markdown (view_name +'.md')
-    view_data = {}
-    return render_template_string (html, view_name = session)
-
-@app.route("/all")
-def all():
-    onlyfiles = [f for f in listdir('app/views') if isfile(join('app/views', f))]]
-    return onlyfiles
+#input parameter name must match route parameter
+def render_page(view_name):
+    html = render_markdown(view_name + '.md')
+    view_data = {} #create empty dictionary
+    return render_template_string(html, view_data = session)
