@@ -59,14 +59,12 @@ def click_tracker():
     
 @app.route("/user")
 def user():
-    return render_markdown("user.md")
+    return render_markdown("user.html")
 
 #generic page
 @app.route("/<view_name>")
 
 #input parameter name must match route parameter
 def render_page(view_name):
-    html = render_markdown(view_name + '.md')
-    view_data = {} #create empty dictionary
-    return render_template_string(html, view_data = session)
+    return render_template(view_name + '.html')
 
