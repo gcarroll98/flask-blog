@@ -2,7 +2,8 @@
 #namespace
 from app import app
 from markdown import markdown
-from flask import render_template, render_template_string, request, session
+from flask import (render_template, render_template_string, request, session, flash, redirect, abort,g, url_for)
+from flask_bootstrap import Bootstrap
 from app.blog_helpers import render_markdown
 from os import listdir
 from os.path import isfile, join, splitext
@@ -26,10 +27,17 @@ def all():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    error = None
     if request.method == 'POST':
-        #TODO: process request.values as necessary
-        session['user_name'] = request.values['user_name']
-    return ""
+        if request.form['username'] != app.config['USERNAME']:
+            error = 'Invalid username'
+    elif request.form['password'] != app.config['PASSWORD']:
+            error = 'Invalid password'
+    else:
+        session['logged_in'] = True
+        flash('You were logged in')
+        return redirect(url_for('show_entries'))
+    return render_template('login.html', error=error)
 
 def allsplit(view_data):
     i = 0
@@ -59,12 +67,12 @@ def click_tracker():
     
 @app.route("/user")
 def user():
-    return render_markdown("user.html")
+    return render_template("user.html")
 
 #generic page
 @app.route("/<view_name>")
 
 #input parameter name must match route parameter
 def render_page(view_name):
-    return render_template(view_name + '.html')
+    return ""
 
