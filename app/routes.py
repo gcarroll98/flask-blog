@@ -8,7 +8,7 @@ from app.blog_helpers import render_markdown
 from os import listdir
 from os.path import isfile, join, splitext
 import flask
-
+import sqlite3
 
 
 #home page
@@ -38,6 +38,10 @@ def login():
         flash('You were logged in')
         return redirect(url_for('show_entries'))
     return render_template('login.html', error=error)
+
+def logout(client):
+    return client.get('/logout',follow_redirects=True)
+
 
 def allsplit(view_data):
     i = 0
@@ -72,7 +76,13 @@ def user():
 #generic page
 @app.route("/<view_name>")
 
+
 #input parameter name must match route parameter
 def render_page(view_name):
     return ""
+
+def connect_db():
+    rv = sqlite3.connect(app.config['DATABASE'])
+    rv.row_factor = sqlite3.Row 
+    return rv
 
