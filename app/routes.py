@@ -28,21 +28,26 @@ def all():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
+    
     if request.method == 'POST':
-        if request.form['username'] != app.config['USERNAME']:
+        if request.form['username'] != "admin":
             error = 'Invalid username'
-    elif request.form['password'] != app.config['PASSWORD']:
+        elif request.form['password'] != "default":
             error = 'Invalid password'
-    else:
-        session['logged_in'] = True
-        flash('You were logged in')
-        return redirect(url_for('show_entries'))
+        else:
+          session['logged_in'] = True
+          flash('You were logged in')
+          return redirect(url_for('logout'))
+
     return render_template('login.html', error=error)
 
-def logout(client):
-    return client.get('/logout',follow_redirects=True)
-
-
+@app.route('/logout')
+def logout():
+    session.pop('logged_in',None)
+    flash('You were logged out')
+    return render_template('show_entries.html')
+    
+    
 def allsplit(view_data):
     i = 0
     while i < len(view_data['pages']):
@@ -79,10 +84,44 @@ def user():
 
 #input parameter name must match route parameter
 def render_page(view_name):
-    return ""
+    return render_template(view_name + '.hmtl')
 
 def connect_db():
     rv = sqlite3.connect(app.config['DATABASE'])
     rv.row_factor = sqlite3.Row 
     return rv
 
+def init_db():
+    db = get_db()
+
+    with app.open_resource('schema.sql',mode = 'r') as f:
+        db.cursor().executescript(f.read())
+
+    db.commit()
+
+@app.cli.command('initdb')
+def initdb_command():
+    init_db()
+    print ('Initialized the databse.')
+
+
+def get_db():
+    if not hasattr(g, 'sqlite_db'):
+        g.sqlite_db = connect_db
+    return g.sqlite_db
+
+@app.teardown_appcontext
+def close_db(error):
+    if hasattr(g, 'sqlite_db'):
+        g.sqlite_db.close()
+
+@app.route('/add', methods = ['POST'])
+def add_entry():
+    if not session.get('logged_in'):
+        abort(401)
+    db = get_db()
+    db.execute('insert into entries (title,text) values (?,?)',
+            [request.form['title'],request.form['text']])
+    db.commit()
+    flash('New entry was successfully posted')
+    return redirect(url_for('show_entries'))
