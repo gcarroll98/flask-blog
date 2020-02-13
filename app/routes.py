@@ -37,7 +37,7 @@ def login():
         else:
           session['logged_in'] = True
           flash('You were logged in')
-          return redirect(url_for('logout'))
+          return redirect(url_for('login'))
 
     return render_template('login.html', error=error)
 
@@ -61,9 +61,6 @@ def allsplit(view_data):
 def favicon():
     return ""
 
-@app.route("/edit")
-def edit():
-    return render_template("edit.html")
 
 @app.route("/click_tracker", methods=['GET', 'POST'])
 def click_tracker():
@@ -125,3 +122,11 @@ def add_entry():
     db.commit()
     flash('New entry was successfully posted')
     return redirect(url_for('show_entries'))
+
+@app.route("/edit/<view_name>")
+def edit(view_name):
+    if session.get('logged_in'):
+        open("/<view_name>")
+        return 
+    else:
+        return redirect(url_for('login'))
