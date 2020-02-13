@@ -84,7 +84,7 @@ def user():
 
 #input parameter name must match route parameter
 def render_page(view_name):
-    return render_template(view_name + '.hmtl')
+    return render_template(view_name + '.html')
 
 def connect_db():
     rv = sqlite3.connect(app.config['DATABASE'])
