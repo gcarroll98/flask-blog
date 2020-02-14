@@ -1,0 +1,2 @@
+graft app/templates
+include app/schema.sql

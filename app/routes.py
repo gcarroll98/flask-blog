@@ -13,8 +13,11 @@ import sqlite3
 
 #home page
 @app.route('/')
-def home():
-    return render_template("index.html")
+def show_entries():
+    db = get_db()
+    cur = db.execute('select title, text from entries order by id desc')
+    entries = cur.fetchall()
+    return render_template('show_entries.html',entries=entries)
 
 @app.route('/all')
 def all():
@@ -112,12 +115,17 @@ def close_db(error):
     if hasattr(g, 'sqlite_db'):
         g.sqlite_db.close()
 
+
+
+
+
+
 @app.route('/add', methods = ['POST'])
 def add_entry():
     if not session.get('logged_in'):
         abort(401)
     db = get_db()
-    db.execute('insert into entries (title,text) values (?,?)',
+    db.execute('insert into entries (title,entry_text) values (?,?)',
             [request.form['title'],request.form['text']])
     db.commit()
     flash('New entry was successfully posted')
@@ -126,7 +134,10 @@ def add_entry():
 @app.route("/edit/<view_name>")
 def edit(view_name):
     if session.get('logged_in'):
-        open("/<view_name>")
-        return 
+       text = open('/templates/' + view_name +'.html', 'r+')
+       edit = text.read()
+       text.close()
+       return render_template('edit.html',text=edit)
     else:
         return redirect(url_for('login'))
+
